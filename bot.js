@@ -1,4 +1,4 @@
-var population = 4;
+var population = 8;
 
 var amountObstacles = 1;
 
@@ -17,6 +17,8 @@ var lastKeyPress;
 var epochCount = 0;
 
 var stopAtNextEpoch = false;
+
+var bestFitnessSoFar = 0;
 
 function startNew(){
   setup(false);
@@ -37,7 +39,7 @@ function startNextBot(){
 function setup(load){
 
   for(var i = 0; i < population; i++){
-    networks[i] = new Brainwave.Network(inputs, 3, 2, 10, 8);
+    networks[i] = new Brainwave.Network(inputs, 3, 1, 3);
   }
   if(load){
     for(var i = 0; i < networks.length; i++){
@@ -133,8 +135,13 @@ function handleGameOver(){
       setTimeout(startNextBot, 2000);
     }
   } else {
-    console.log("currentNetworkIndex: " + currentNetworkIndex);
-    genetics.population[currentNetworkIndex].fitness = getFitnessScore();
+    var fitness = getFitnessScore();
+    genetics.population[currentNetworkIndex].fitness = fitness;
+    if(fitness > bestFitnessSoFar){
+      bestFitnessSoFar = fitness;
+      console.log("new best attempt with fitness score: " +  fitness);
+      saveNetworkWeights(networks[currentNetworkIndex], "bestAttempt");
+    }
     currentNetworkIndex++;
     setTimeout(startNextBot, 1000);
   }
@@ -160,6 +167,10 @@ function getNumOfObstacleType(typeString){
     case "PTERODACTYL":
       return 2;
   }
+}
+
+function saveNetworkWeights(network, localStorageName){
+  localStorage.setItem(localStorageName, network.exportWeights());
 }
 
 function sigmoid(t) {
